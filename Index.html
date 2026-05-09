@@ -1,0 +1,360 @@
+html = r'''<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>社區訪查報告系統｜卡片版</title>
+
+<style>
+body{
+    margin:0;
+    padding:30px;
+    background:#eef2f7;
+    font-family:"Microsoft JhengHei",sans-serif;
+}
+
+.header{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.header h1{
+    margin:0;
+    font-size:32px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:white;
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.08);
+}
+
+.card h2{
+    margin-top:0;
+    font-size:20px;
+    border-bottom:2px solid #ddd;
+    padding-bottom:10px;
+}
+
+label{
+    display:block;
+    margin-top:12px;
+    margin-bottom:5px;
+    font-weight:bold;
+}
+
+input[type=text],
+input[type=date],
+select,
+textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    box-sizing:border-box;
+}
+
+textarea{
+    min-height:120px;
+    resize:vertical;
+}
+
+.buttons{
+    margin-top:25px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+}
+
+button{
+    border:none;
+    border-radius:10px;
+    padding:12px 18px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+    font-size:15px;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+.preview{
+    margin-top:30px;
+    background:white;
+    border-radius:16px;
+    padding:25px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.08);
+}
+
+.preview img{
+    max-width:240px;
+    margin:10px;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+.photo-preview img{
+    max-width:120px;
+    margin:10px 10px 0 0;
+    border-radius:10px;
+}
+
+@media print{
+    body{
+        background:white;
+        padding:0;
+    }
+
+    .buttons{
+        display:none;
+    }
+
+    .card{
+        box-shadow:none;
+        border:1px solid #ddd;
+    }
+
+    .preview{
+        box-shadow:none;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>社區訪查報告系統</h1>
+    <p>卡片式單機版 HTML</p>
+</div>
+
+<div class="grid">
+
+    <div class="card">
+        <h2>基本資料</h2>
+
+        <label>日期</label>
+        <input type="date" id="date">
+
+        <label>地址</label>
+        <input type="text" id="address">
+
+        <label>案件來源</label>
+        <select id="source">
+            <option>1999</option>
+            <option>民眾通報</option>
+            <option>里長通報</option>
+            <option>其他</option>
+        </select>
+
+        <label>報告人</label>
+        <input type="text" id="reporter">
+    </div>
+
+    <div class="card">
+        <h2>案件內容</h2>
+
+        <label>事由</label>
+        <textarea id="reason"></textarea>
+
+        <label>處理過程與結果</label>
+        <textarea id="process"></textarea>
+
+        <label>會辦單位及處理情形</label>
+        <textarea id="cooperate"></textarea>
+    </div>
+
+    <div class="card">
+        <h2>照片管理</h2>
+
+        <label>上傳現場照片</label>
+        <input type="file" id="photos" multiple accept="image/*">
+
+        <div class="photo-preview" id="photoPreview"></div>
+    </div>
+
+</div>
+
+<div class="buttons">
+    <button onclick="generatePreview()">更新預覽</button>
+    <button onclick="saveTemplate()">儲存範本</button>
+    <button onclick="loadTemplate()">載入範本</button>
+    <button onclick="exportWord()">匯出 Word</button>
+    <button onclick="window.print()">列印 / PDF</button>
+    <button onclick="clearForm()">清空資料</button>
+</div>
+
+<div class="preview" id="preview">
+    <h2 style="text-align:center;">社區訪查報告書</h2>
+    <p>尚未產生內容</p>
+</div>
+
+<script>
+
+let uploadedImages=[];
+
+document.getElementById('photos').addEventListener('change',function(e){
+
+    uploadedImages=[];
+
+    const preview=document.getElementById('photoPreview');
+    preview.innerHTML='';
+
+    Array.from(e.target.files).forEach(file=>{
+
+        const reader=new FileReader();
+
+        reader.onload=function(event){
+
+            uploadedImages.push(event.target.result);
+
+            const img=document.createElement('img');
+            img.src=event.target.result;
+
+            preview.appendChild(img);
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+});
+
+function getData(){
+
+    return{
+        date:document.getElementById('date').value,
+        address:document.getElementById('address').value,
+        source:document.getElementById('source').value,
+        reporter:document.getElementById('reporter').value,
+        reason:document.getElementById('reason').value,
+        process:document.getElementById('process').value,
+        cooperate:document.getElementById('cooperate').value
+    };
+}
+
+function generatePreview(){
+
+    const d=getData();
+
+    let html=`
+    <h2 style="text-align:center;">社區訪查報告書</h2>
+
+    <p><b>日期：</b>${d.date}</p>
+    <p><b>地址：</b>${d.address}</p>
+    <p><b>案件來源：</b>${d.source}</p>
+
+    <h3>事由</h3>
+    <p>${d.reason.replace(/\n/g,"<br>")}</p>
+
+    <h3>處理過程與結果</h3>
+    <p>${d.process.replace(/\n/g,"<br>")}</p>
+
+    <h3>會辦單位及處理情形</h3>
+    <p>${d.cooperate.replace(/\n/g,"<br>")}</p>
+
+    <p><b>報告人：</b>${d.reporter}</p>
+
+    <hr>
+
+    <h3>現場照片</h3>
+    `;
+
+    uploadedImages.forEach(img=>{
+        html+=`<img src="${img}">`;
+    });
+
+    document.getElementById('preview').innerHTML=html;
+}
+
+function saveTemplate(){
+
+    localStorage.setItem('visitTemplate',JSON.stringify(getData()));
+
+    alert('範本已儲存');
+}
+
+function loadTemplate(){
+
+    const saved=localStorage.getItem('visitTemplate');
+
+    if(!saved){
+        alert('沒有範本');
+        return;
+    }
+
+    const d=JSON.parse(saved);
+
+    document.getElementById('date').value=d.date||'';
+    document.getElementById('address').value=d.address||'';
+    document.getElementById('source').value=d.source||'';
+    document.getElementById('reporter').value=d.reporter||'';
+    document.getElementById('reason').value=d.reason||'';
+    document.getElementById('process').value=d.process||'';
+    document.getElementById('cooperate').value=d.cooperate||'';
+
+    generatePreview();
+
+    alert('範本已載入');
+}
+
+function exportWord(){
+
+    generatePreview();
+
+    const content=document.getElementById('preview').innerHTML;
+
+    const header=`
+    <html xmlns:o='urn:schemas-microsoft-com:office:office'
+    xmlns:w='urn:schemas-microsoft-com:office:word'
+    xmlns='http://www.w3.org/TR/REC-html40'>
+    <head><meta charset='utf-8'></head><body>`;
+
+    const footer='</body></html>';
+
+    const sourceHTML=header+content+footer;
+
+    const source='data:application/vnd.ms-word;charset=utf-8,'+encodeURIComponent(sourceHTML);
+
+    const fileDownload=document.createElement("a");
+
+    fileDownload.href=source;
+    fileDownload.download='社區訪查報告書.doc';
+
+    document.body.appendChild(fileDownload);
+
+    fileDownload.click();
+
+    document.body.removeChild(fileDownload);
+}
+
+function clearForm(){
+
+    if(!confirm('確定清空資料？')) return;
+
+    document.querySelectorAll('input[type=text], input[type=date], textarea').forEach(el=>{
+        el.value='';
+    });
+
+    document.getElementById('source').selectedIndex=0;
+
+    document.getElementById('photoPreview').innerHTML='';
+
+    uploadedImages=[];
+
+    document.getElementById('preview').innerHTML='<h2 style="text-align:center;">社區訪查報告書</h2><p>尚未產生內容</p>';
+}
+
+</script>
+
+</body>
+</html>
+'''
