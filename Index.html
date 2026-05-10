@@ -1,360 +1,224 @@
-html = r'''<!DOCTYPE html>
+
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>社區訪查報告系統｜卡片版</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A型肝炎疫調表單 - 匯出模組整合版</title>
+  <style>
+    /* 基礎樣式 */
+    body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans TC, "Microsoft JhengHei", Arial, sans-serif; margin:0; background:#f7f7f8; color:#222}
+    header{background:#0054a6; color:#fff; padding:24px}
+    header h1{margin:0; font-size:22px}
+    main{max-width:1100px; margin:24px auto; background:#fff; padding:24px; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,.08)}
+    section{margin:24px 0}
+    section h2{font-size:18px; margin:0 0 12px; color:#00487c; border-left: 4px solid #0054a6; padding-left: 10px;}
+    .grid{display:grid; grid-template-columns: repeat(12, 1fr); gap:12px}
+    .card{border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom: 20px;}
+    label{display:block; margin:6px 0;}
+    input[type=text], input[type=date], input[type=tel], input[type=number], select, textarea{width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; box-sizing: border-box;}
+    .muted{color:#666; font-size:12px; line-height: 1.5}
+    .btn{background:#0054a6; color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight: bold; transition: 0.2s;}
+    .btn:hover{opacity: 0.9;}
+    .btn.secondary{background:#6b7280}
+    table{width:100%; border-collapse:collapse; margin:10px 0; font-size: 14px;}
+    th, td{border:1px solid #e5e7eb; padding:8px; text-align:left;}
+    th{background:#f1f5f9; white-space: nowrap;}
+    .tag{display:inline-block; background:#eef2ff; color:#3730a3; padding:2px 10px; border-radius:999px; font-size:13px; font-weight:bold; margin-bottom: 8px;}
+    .req::after{content:"（必填）"; color:#b91c1c; margin-left:6px; font-size:12px}
+    .table-responsive { overflow-x: auto; }
 
-<style>
-body{
-    margin:0;
-    padding:30px;
-    background:#eef2f7;
-    font-family:"Microsoft JhengHei",sans-serif;
-}
-
-.header{
-    text-align:center;
-    margin-bottom:25px;
-}
-
-.header h1{
-    margin:0;
-    font-size:32px;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-    gap:20px;
-}
-
-.card{
-    background:white;
-    border-radius:16px;
-    padding:20px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.08);
-}
-
-.card h2{
-    margin-top:0;
-    font-size:20px;
-    border-bottom:2px solid #ddd;
-    padding-bottom:10px;
-}
-
-label{
-    display:block;
-    margin-top:12px;
-    margin-bottom:5px;
-    font-weight:bold;
-}
-
-input[type=text],
-input[type=date],
-select,
-textarea{
-    width:100%;
-    padding:10px;
-    border:1px solid #ccc;
-    border-radius:8px;
-    box-sizing:border-box;
-}
-
-textarea{
-    min-height:120px;
-    resize:vertical;
-}
-
-.buttons{
-    margin-top:25px;
-    display:flex;
-    flex-wrap:wrap;
-    gap:12px;
-}
-
-button{
-    border:none;
-    border-radius:10px;
-    padding:12px 18px;
-    background:#2563eb;
-    color:white;
-    cursor:pointer;
-    font-size:15px;
-}
-
-button:hover{
-    opacity:0.9;
-}
-
-.preview{
-    margin-top:30px;
-    background:white;
-    border-radius:16px;
-    padding:25px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.08);
-}
-
-.preview img{
-    max-width:240px;
-    margin:10px;
-    border-radius:10px;
-    border:1px solid #ccc;
-}
-
-.photo-preview img{
-    max-width:120px;
-    margin:10px 10px 0 0;
-    border-radius:10px;
-}
-
-@media print{
-    body{
-        background:white;
-        padding:0;
+    /* --- 列印專用樣式 --- */
+    @media print {
+      body { background: #fff; }
+      header, .btn, .secondary, .muted, .no-print { display: none !important; }
+      main { margin: 0; padding: 0; box-shadow: none; max-width: 100%; }
+      .card { border: 1px solid #eee; page-break-inside: avoid; margin-bottom: 10px; }
+      input, select, textarea { border: none !important; background: transparent !important; padding: 0 !important; appearance: none; -webkit-appearance: none; }
+      .grid { display: block; }
+      section h2 { border-left: 6px solid #0054a6; }
     }
-
-    .buttons{
-        display:none;
-    }
-
-    .card{
-        box-shadow:none;
-        border:1px solid #ddd;
-    }
-
-    .preview{
-        box-shadow:none;
-    }
-}
-</style>
+  </style>
 </head>
-
 <body>
 
-<div class="header">
-    <h1>社區訪查報告系統</h1>
-    <p>卡片式單機版 HTML</p>
-</div>
+<header>
+  <h1>傳染病問卷調查管理系統｜病毒性 A 型肝炎疫調線上表單</h1>
+</header>
 
-<div class="grid">
-
-    <div class="card">
-        <h2>基本資料</h2>
-
-        <label>日期</label>
-        <input type="date" id="date">
-
-        <label>地址</label>
-        <input type="text" id="address">
-
-        <label>案件來源</label>
-        <select id="source">
-            <option>1999</option>
-            <option>民眾通報</option>
-            <option>里長通報</option>
-            <option>其他</option>
-        </select>
-
-        <label>報告人</label>
-        <input type="text" id="reporter">
+<main id="capture-area">
+  <section class="card" style="background: #fff9e6; border: 2px solid #ffe58f;">
+    <h2>核心日期計算（自動推算）</h2>
+    <div class="grid">
+      <div style="grid-column: span 12;">
+        <label class="req"><strong>發病日期 (Date of Onset)：</strong>
+          <input type="date" id="primary_onset_date" onchange="calculateEpidemicPeriods()" required>
+        </label>
+      </div>
+      <div style="grid-column: span 6; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
+        <strong style="color: #d46b08;">🔍 潛伏期調查區間 (-15~-50天)</strong><br>
+        <span id="latent_range_display" style="font-weight: bold; color: #b91c1c; font-size: 18px;">請選擇發病日</span>
+      </div>
+      <div style="grid-column: span 6; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
+        <strong style="color: #d46b08;">📢 可傳染期調查區間 (-14~+7天)</strong><br>
+        <span id="infectious_range_display" style="font-weight: bold; color: #b91c1c; font-size: 18px;">請選擇發病日</span>
+      </div>
     </div>
+  </section>
 
-    <div class="card">
-        <h2>案件內容</h2>
-
-        <label>事由</label>
-        <textarea id="reason"></textarea>
-
-        <label>處理過程與結果</label>
-        <textarea id="process"></textarea>
-
-        <label>會辦單位及處理情形</label>
-        <textarea id="cooperate"></textarea>
+  <section class="card">
+    <h2>主要飲水來源</h2>
+    <div class="grid">
+      <div style="grid-column: span 6;">
+        <h3 class="tag">住家</h3>
+        <label><input type="checkbox" name="home_water" value="自來水"> 自來水</label>
+        <label><input type="checkbox" name="home_water" value="包裝水"> 包裝水</label>
+        <label>是否煮沸？ <select name="home_boiled"><option value="">請選擇</option><option>是</option><option>否</option></select></label>
+      </div>
+      <div style="grid-column: span 6;">
+        <h3 class="tag">工作地點</h3>
+        <label><input type="checkbox" name="work_water" value="自來水"> 自來水</label>
+        <label><input type="checkbox" name="work_water" value="包裝水"> 包裝水</label>
+        <label>是否煮沸？ <select name="work_boiled"><option value="">請選擇</option><option>是</option><option>否</option></select></label>
+      </div>
     </div>
+  </section>
 
-    <div class="card">
-        <h2>照片管理</h2>
-
-        <label>上傳現場照片</label>
-        <input type="file" id="photos" multiple accept="image/*">
-
-        <div class="photo-preview" id="photoPreview"></div>
+  <section class="card">
+    <h2>飲食危險因子（潛伏期內）</h2>
+    <div class="table-responsive">
+      <table id="diet_table">
+        <thead>
+          <tr><th>日期</th><th>餐別</th><th>場所</th><th>風險食品名稱</th><th>備註</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
+    <button type="button" class="btn no-print" onclick="addDietRow()">＋ 新增飲食紀錄</button>
+  </section>
 
-</div>
+  <section class="card">
+    <h2>旅行資料</h2>
+    <h3 class="tag">【潛伏期】旅行史</h3>
+    <table id="latent_travel_table">
+      <thead><tr><th>日期起迄</th><th>縣市/國家</th><th>地點</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <button type="button" class="btn no-print" onclick="addRow('latent_travel_table', ['date','text','text'])">＋ 新增紀錄</button>
+    
+    <h3 class="tag" style="margin-top:20px;">【可傳染期】旅行史</h3>
+    <table id="infectious_travel_table">
+      <thead><tr><th>日期起迄</th><th>縣市/國家</th><th>地點</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <button type="button" class="btn no-print" onclick="addRow('infectious_travel_table', ['date','text','text'])">＋ 新增紀錄</button>
+  </section>
 
-<div class="buttons">
-    <button onclick="generatePreview()">更新預覽</button>
-    <button onclick="saveTemplate()">儲存範本</button>
-    <button onclick="loadTemplate()">載入範本</button>
-    <button onclick="exportWord()">匯出 Word</button>
-    <button onclick="window.print()">列印 / PDF</button>
-    <button onclick="clearForm()">清空資料</button>
-</div>
-
-<div class="preview" id="preview">
-    <h2 style="text-align:center;">社區訪查報告書</h2>
-    <p>尚未產生內容</p>
-</div>
+  <section class="card no-print" style="text-align: center; background: #f0f9ff; border: 2px solid #0054a6;">
+    <h2>疫調資料匯出</h2>
+    <p class="muted">請確認資料正確後，選擇匯出格式：</p>
+    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
+      <button class="btn" style="background: #e11d48;" onclick="exportToPDF()">🖨️ PDF 報表列印</button>
+      <button class="btn" style="background: #2563eb;" onclick="exportToWord()">📝 匯出 Word 檔</button>
+      <button class="btn secondary" onclick="submitJSON()">💾 備份 JSON 檔</button>
+    </div>
+  </section>
+</main>
 
 <script>
+/* 核心計算邏輯 */
+function calculateEpidemicPeriods() {
+  const onsetValue = document.getElementById('primary_onset_date').value;
+  if (!onsetValue) return;
+  const onsetDate = new Date(onsetValue);
+  const formatISO = (date) => date.toISOString().split('T')[0];
 
-let uploadedImages=[];
+  const lStart = new Date(onsetDate); lStart.setDate(onsetDate.getDate() - 50);
+  const lEnd = new Date(onsetDate);   lEnd.setDate(onsetDate.getDate() - 15);
+  const iStart = new Date(onsetDate); iStart.setDate(onsetDate.getDate() - 14);
+  const iEnd = new Date(onsetDate);   iEnd.setDate(onsetDate.getDate() + 7);
 
-document.getElementById('photos').addEventListener('change',function(e){
+  document.getElementById('latent_range_display').innerText = `${lStart.toLocaleDateString('zh-TW')} ～ ${lEnd.toLocaleDateString('zh-TW')}`;
+  document.getElementById('infectious_range_display').innerText = `${iStart.toLocaleDateString('zh-TW')} ～ ${iEnd.toLocaleDateString('zh-TW')}`;
 
-    uploadedImages=[];
-
-    const preview=document.getElementById('photoPreview');
-    preview.innerHTML='';
-
-    Array.from(e.target.files).forEach(file=>{
-
-        const reader=new FileReader();
-
-        reader.onload=function(event){
-
-            uploadedImages.push(event.target.result);
-
-            const img=document.createElement('img');
-            img.src=event.target.result;
-
-            preview.appendChild(img);
-        };
-
-        reader.readAsDataURL(file);
-    });
-
-});
-
-function getData(){
-
-    return{
-        date:document.getElementById('date').value,
-        address:document.getElementById('address').value,
-        source:document.getElementById('source').value,
-        reporter:document.getElementById('reporter').value,
-        reason:document.getElementById('reason').value,
-        process:document.getElementById('process').value,
-        cooperate:document.getElementById('cooperate').value
-    };
+  // 鎖定日期範圍
+  const latentInputs = document.querySelectorAll('#diet_table input[type="date"], #latent_travel_table input[type="date"]');
+  latentInputs.forEach(i => { i.min = formatISO(lStart); i.max = formatISO(lEnd); });
+  const infectiousInputs = document.querySelectorAll('#infectious_travel_table input[type="date"]');
+  infectiousInputs.forEach(i => { i.min = formatISO(iStart); i.max = formatISO(iEnd); });
 }
 
-function generatePreview(){
-
-    const d=getData();
-
-    let html=`
-    <h2 style="text-align:center;">社區訪查報告書</h2>
-
-    <p><b>日期：</b>${d.date}</p>
-    <p><b>地址：</b>${d.address}</p>
-    <p><b>案件來源：</b>${d.source}</p>
-
-    <h3>事由</h3>
-    <p>${d.reason.replace(/\n/g,"<br>")}</p>
-
-    <h3>處理過程與結果</h3>
-    <p>${d.process.replace(/\n/g,"<br>")}</p>
-
-    <h3>會辦單位及處理情形</h3>
-    <p>${d.cooperate.replace(/\n/g,"<br>")}</p>
-
-    <p><b>報告人：</b>${d.reporter}</p>
-
-    <hr>
-
-    <h3>現場照片</h3>
-    `;
-
-    uploadedImages.forEach(img=>{
-        html+=`<img src="${img}">`;
-    });
-
-    document.getElementById('preview').innerHTML=html;
+/* 動態新增列 */
+function addDietRow(){
+  const tbody = document.querySelector('#diet_table tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="date"></td>
+    <td><input type="text" placeholder="午餐"></td>
+    <td><input type="text" placeholder="餐廳名稱"></td>
+    <td><input type="text" placeholder="如：生魚片"></td>
+    <td><input type="text"></td>`;
+  tbody.appendChild(tr);
+  calculateEpidemicPeriods();
 }
 
-function saveTemplate(){
-
-    localStorage.setItem('visitTemplate',JSON.stringify(getData()));
-
-    alert('範本已儲存');
+function addRow(tableId, types){
+  const tbody = document.querySelector('#'+tableId+' tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = types.map(t => `<td><input type="${t}"></td>`).join('');
+  tbody.appendChild(tr);
+  calculateEpidemicPeriods();
 }
 
-function loadTemplate(){
+/* --- 匯出功能 --- */
 
-    const saved=localStorage.getItem('visitTemplate');
-
-    if(!saved){
-        alert('沒有範本');
-        return;
-    }
-
-    const d=JSON.parse(saved);
-
-    document.getElementById('date').value=d.date||'';
-    document.getElementById('address').value=d.address||'';
-    document.getElementById('source').value=d.source||'';
-    document.getElementById('reporter').value=d.reporter||'';
-    document.getElementById('reason').value=d.reason||'';
-    document.getElementById('process').value=d.process||'';
-    document.getElementById('cooperate').value=d.cooperate||'';
-
-    generatePreview();
-
-    alert('範本已載入');
+// 1. PDF 列印
+function exportToPDF() {
+  if(!document.getElementById('primary_onset_date').value){
+    alert('請先填寫發病日期'); return;
+  }
+  window.print();
 }
 
-function exportWord(){
+// 2. Word 匯出
+function exportToWord() {
+  const onsetDate = document.getElementById('primary_onset_date').value || '未填寫';
+  // 複製內容並移除按鈕
+  const content = document.getElementById('capture-area').cloneNode(true);
+  content.querySelectorAll('.no-print').forEach(el => el.remove());
+  
+  // 將 input 框的值轉為純文字 (Word 較易閱讀)
+  content.querySelectorAll('input, select').forEach(el => {
+    const span = document.createElement('span');
+    span.innerText = el.value || '______';
+    el.parentNode.replaceChild(span, el);
+  });
 
-    generatePreview();
-
-    const content=document.getElementById('preview').innerHTML;
-
-    const header=`
-    <html xmlns:o='urn:schemas-microsoft-com:office:office'
-    xmlns:w='urn:schemas-microsoft-com:office:word'
-    xmlns='http://www.w3.org/TR/REC-html40'>
-    <head><meta charset='utf-8'></head><body>`;
-
-    const footer='</body></html>';
-
-    const sourceHTML=header+content+footer;
-
-    const source='data:application/vnd.ms-word;charset=utf-8,'+encodeURIComponent(sourceHTML);
-
-    const fileDownload=document.createElement("a");
-
-    fileDownload.href=source;
-    fileDownload.download='社區訪查報告書.doc';
-
-    document.body.appendChild(fileDownload);
-
-    fileDownload.click();
-
-    document.body.removeChild(fileDownload);
+  const htmlHeader = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>table{border-collapse:collapse;width:100%}th,td{border:1px solid #000;padding:5px}.card{margin-bottom:20px;border:1px solid #ccc;padding:10px}</style></head><body>`;
+  const blob = new Blob(['\ufeff', htmlHeader + content.innerHTML + "</body></html>"], { type: 'application/msword' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `疫調報告_A肝_${onsetDate}.doc`;
+  link.click();
 }
 
-function clearForm(){
-
-    if(!confirm('確定清空資料？')) return;
-
-    document.querySelectorAll('input[type=text], input[type=date], textarea').forEach(el=>{
-        el.value='';
-    });
-
-    document.getElementById('source').selectedIndex=0;
-
-    document.getElementById('photoPreview').innerHTML='';
-
-    uploadedImages=[];
-
-    document.getElementById('preview').innerHTML='<h2 style="text-align:center;">社區訪查報告書</h2><p>尚未產生內容</p>';
+// 3. JSON 匯出
+function submitJSON() {
+  const onsetDate = document.getElementById('primary_onset_date').value;
+  const data = {
+    onset_date: onsetDate,
+    export_time: new Date().toLocaleString(),
+    // ...可擴充 gatherData 收集邏輯
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `HAV_Data_${onsetDate}.json`;
+  link.click();
 }
 
+window.onload = calculateEpidemicPeriods;
 </script>
 
 </body>
 </html>
-'''
